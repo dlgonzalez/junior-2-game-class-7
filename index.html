@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adventure Rescue: The Lost Mountain Mission</title>
+<style>
+:root{
+  --bg:#eef2f7; --panel:#ffffff; --ink:#18212f; --muted:#657184;
+  --navy:#24344d; --blue:#4f6d8a; --ice:#dfeaf3; --lav:#e7e3f2;
+  --mint:#dceee9; --yellow:#f2e5bd; --coral:#e7c9c4;
+  --line:#cbd4df; --good:#4d806f; --bad:#9b5f5f;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(135deg,#f5f7fa,#e8edf3);color:var(--ink);min-height:100vh}
+button{font:inherit}
+.app{max-width:1200px;margin:auto;padding:22px}
+header{display:flex;justify-content:space-between;gap:18px;align-items:center;background:var(--navy);color:white;border-radius:22px;padding:20px 24px;box-shadow:0 12px 30px #25364d18}
+.brand h1{margin:0;font-size:clamp(25px,4vw,40px);letter-spacing:-1px}
+.brand p{margin:5px 0 0;color:#dce5ef}
+.badge{background:#ffffff18;border:1px solid #ffffff30;padding:10px 14px;border-radius:14px;font-weight:800}
+.teambar{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.team{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:12px;cursor:pointer;transition:.2s}
+.team.active{border-color:var(--blue);box-shadow:0 0 0 4px #4f6d8a16}
+.team .top{display:flex;justify-content:space-between;font-weight:800}
+.score{font-size:24px;margin-top:5px}
+.progress{height:8px;background:#e9edf2;border-radius:20px;overflow:hidden;margin-top:8px}
+.progress i{display:block;height:100%;background:var(--blue);width:0;transition:.3s}
+main{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:24px;min-height:600px}
+.screen{display:none}.screen.active{display:block}
+.eyebrow{color:var(--blue);font-weight:900;text-transform:uppercase;letter-spacing:1.2px;font-size:13px}
+h2{font-size:clamp(28px,4vw,44px);margin:8px 0 10px;line-height:1.05}
+h3{font-size:24px;margin:8px 0}
+.lead{font-size:18px;color:var(--muted);max-width:800px;line-height:1.5}
+.cardgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0}
+.info{padding:18px;border-radius:18px;border:1px solid var(--line)}
+.info:nth-child(1){background:var(--ice)}.info:nth-child(2){background:var(--lav)}.info:nth-child(3){background:var(--mint)}
+.info b{display:block;margin-bottom:5px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.btn{border:0;border-radius:14px;padding:12px 18px;font-weight:900;cursor:pointer;background:var(--navy);color:#fff;transition:.15s}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.btn.secondary{background:#edf1f5;color:var(--ink);border:1px solid var(--line)}
+.btn.good{background:var(--good)} .btn.bad{background:var(--bad)}
+.challenge{background:#f8fafc;border:1px solid var(--line);border-radius:20px;padding:20px}
+.prompt{font-size:24px;font-weight:850;line-height:1.3;margin:12px 0 18px}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.choice{background:#fff;border:2px solid var(--line);border-radius:16px;padding:15px;cursor:pointer;text-align:left;font-weight:750;min-height:62px}
+.choice:hover{border-color:var(--blue);background:#f5f8fb}
+.choice.selected{border-color:var(--blue);background:var(--ice)}
+.choice.correct{border-color:var(--good);background:var(--mint)}
+.choice.wrong{border-color:var(--bad);background:#f4e4e1}
+.feedback{margin-top:14px;min-height:28px;font-weight:800}
+.bigword{font-size:42px;font-weight:950;letter-spacing:-1px}
+.timer{font-variant-numeric:tabular-nums;font-size:20px;font-weight:900;color:var(--blue)}
+.team-turn{background:var(--yellow);border-radius:14px;padding:12px 15px;font-weight:900;margin-bottom:15px}
+.story{font-size:18px;line-height:1.65;background:#f7f5f1;border-left:5px solid #b9a982;padding:18px;border-radius:12px}
+.story b{color:var(--navy)}
+.move-zone{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.move-card{border:2px dashed var(--line);border-radius:18px;padding:18px;text-align:center;min-height:150px;display:flex;align-items:center;justify-content:center}
+.move-card h3{margin:0 0 8px}
+.callout{padding:15px 18px;border-radius:16px;background:#f0f3f7;margin:14px 0}
+.pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#e9edf2;font-size:13px;font-weight:850;margin:3px}
+.unlocks{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.locked{opacity:.45}
+.final{font-size:26px;font-weight:850;line-height:1.45}
+.footer-note{margin-top:20px;color:var(--muted);font-size:14px}
+@media(max-width:760px){.teambar,.cardgrid,.choices,.move-zone{grid-template-columns:1fr}main{padding:18px}.app{padding:10px}header{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand">
+    <h1>🏔️ Adventure Rescue</h1>
+    <p>The Lost Mountain Mission · a whole-class English game</p>
+  </div>
+  <div class="badge">A2 · Teams · 4 Missions</div>
+</header>
+
+<div class="teambar">
+  <div class="team active" data-team="0" onclick="setTeam(0)"><div class="top"><span>🧭 Team North</span><span id="badge0">READY</span></div><div class="score" id="score0">0 pts</div><div class="progress"><i id="bar0"></i></div></div>
+  <div class="team" data-team="1" onclick="setTeam(1)"><div class="top"><span>🔥 Team Camp</span><span id="badge1">READY</span></div><div class="score" id="score1">0 pts</div><div class="progress"><i id="bar1"></i></div></div>
+  <div class="team" data-team="2" onclick="setTeam(2)"><div class="top"><span>🌲 Team Trail</span><span id="badge2">READY</span></div><div class="score" id="score2">0 pts</div><div class="progress"><i id="bar2"></i></div></div>
+</div>
+
+<main>
+<section id="home" class="screen active">
+  <div class="eyebrow">Mission briefing</div>
+  <h2>Someone is missing. Something went wrong.</h2>
+  <p class="lead">Your teams are mountain rescue crews. A group of young hikers has a problem in the forest. To unlock the rescue route, teams must communicate, move, make choices, and use useful English.</p>
+  <div class="cardgrid">
+    <div class="info"><b>🎯 Your mission</b>Find clues, solve language challenges and rescue the hikers.</div>
+    <div class="info"><b>🗣️ English first</b>Say your answer aloud. Teammates can help, but the team must decide together.</div>
+    <div class="info"><b>🤝 Whole-class moments</b>Some challenges give points only when everyone participates.</div>
+  </div>
+  <div class="callout"><b>Teacher:</b> Put students in 3 teams. Choose a team captain for each round. Project the screen. No phones needed. For movement rounds, clear a small safe space at the front of the room.</div>
+  <div class="unlocks"><span class="pill">🔓 Mission 1: Clues</span><span class="pill locked">🔒 Mission 2: Base Camp</span><span class="pill locked">🔒 Mission 3: Storm</span><span class="pill locked">🔒 Final Rescue</span></div>
+  <div class="actions"><button class="btn" onclick="startMission(1)">Start Mission 1 →</button><button class="btn secondary" onclick="showRules()">How to play</button></div>
+</section>
+
+<section id="rules" class="screen">
+  <div class="eyebrow">How to play</div><h2>Four missions. One rescue.</h2>
+  <div class="cardgrid">
+    <div class="info"><b>1. Take turns</b>Teams rotate. The active team answers first.</div>
+    <div class="info"><b>2. Speak</b>Answers count when students say the English aloud.</div>
+    <div class="info"><b>3. Help</b>Some rounds let another team give a clue for bonus points.</div>
+  </div>
+  <p class="lead">Teacher controls the pace. You can accept natural A2 answers when the meaning is clear.</p>
+  <div class="actions"><button class="btn" onclick="startMission(1)">Begin →</button><button class="btn secondary" onclick="go('home')">Back</button></div>
+</section>
+
+<section id="mission1" class="screen">
+  <div class="eyebrow">Mission 1 · The clue bag</div>
+  <h2>Find the right clue.</h2>
+  <div class="team-turn" id="turn1">Team North's turn</div>
+  <div class="challenge">
+    <div class="timer" id="timer1">⏱ 20</div>
+    <div class="prompt" id="q1"></div>
+    <div class="choices" id="choices1"></div>
+    <div class="feedback" id="fb1"></div>
+  </div>
+  <div class="actions"><button class="btn secondary" onclick="nextQ1()">Next clue</button><button class="btn" onclick="startMission(2)">Unlock Mission 2 →</button></div>
+  <p class="footer-note">Teacher tip: before revealing the answer, ask the team to explain their choice in one short sentence.</p>
+</section>
+
+<section id="mission2" class="screen">
+  <div class="eyebrow">Mission 2 · Base Camp</div>
+  <h2>Pack the rescue bag.</h2>
+  <div class="team-turn" id="turn2">Team Camp's turn</div>
+  <div class="challenge">
+    <p class="lead">A rescue bag is almost empty. The team has 30 seconds to make useful sentences. Pick a prompt, then send one student to the “bag” zone to act it out or point to an imaginary object.</p>
+    <div class="move-zone">
+      <div class="move-card"><div><h3>🎒 BAG ZONE</h3><div class="bigword" id="bagWord">something</div></div></div>
+      <div class="move-card"><div><h3>🗣️ SAY IT</h3><div id="bagPrompt">Make a sentence with the word.</div></div></div>
+    </div>
+    <div class="feedback" id="fb2"></div>
+  </div>
+  <div class="actions"><button class="btn" onclick="newBagPrompt()">New prompt</button><button class="btn good" onclick="scoreBag()">Good sentence +10</button><button class="btn secondary" onclick="startMission(3)">Unlock Mission 3 →</button></div>
+  <p class="footer-note">Movement idea: students can mime the meaning, point to a classroom object, or act out a tiny scene. Keep the English short and natural.</p>
+</section>
+
+<section id="mission3" class="screen">
+  <div class="eyebrow">Mission 3 · The storm</div>
+  <h2>Everyone helps!</h2>
+  <div class="team-turn" id="turn3">Whole class challenge</div>
+  <div class="challenge">
+    <p class="lead">The storm has mixed up the rescue radio messages. The class must rebuild each message. First, everyone stands. Then the teacher points to students to form the sentence in the correct order.</p>
+    <div class="prompt" id="stormPrompt"></div>
+    <div id="stormChoices" class="choices"></div>
+    <div class="feedback" id="fb3"></div>
+  </div>
+  <div class="actions"><button class="btn" onclick="newStorm()">New storm message</button><button class="btn good" onclick="stormBonus()">Class rescue bonus +15</button><button class="btn secondary" onclick="startMission(4)">Final Rescue →</button></div>
+  <p class="footer-note">Whole-class rule: if the sentence is correct, every team gets +5. If the class can also make a second true sentence with the same key word, every team gets +5 more.</p>
+</section>
+
+<section id="mission4" class="screen">
+  <div class="eyebrow">Final Rescue · Mountain radio</div>
+  <h2>Can you save the team?</h2>
+  <p class="lead">The final radio message is yours. Teams have 45 seconds to create a mini rescue plan using at least <b>three</b> of today's useful words.</p>
+  <div class="story"><b>Situation:</b> It is getting dark. Someone is hurt. The phone is not working. The rescue team is somewhere nearby. You need to tell them what to do.</div>
+  <div class="cardgrid">
+    <div class="info"><b>Use at least 3</b><span class="pill">someone</span><span class="pill">something</span><span class="pill">somewhere</span><span class="pill">anyone</span><span class="pill">anything</span><span class="pill">anywhere</span></div>
+    <div class="info"><b>Try a rescue phrase</b><span class="pill">keep safe</span><span class="pill">keep warm</span><span class="pill">keep still</span><span class="pill">keep dry</span></div>
+    <div class="info"><b>Team task</b>Choose a speaker, a mime actor and a “radio operator”. Everyone contributes.</div>
+  </div>
+  <div class="challenge">
+    <div class="timer" id="timer4">⏱ 45</div>
+    <div class="prompt">Build and perform your rescue message!</div>
+    <div class="feedback" id="finalFb">Teacher: award 10–30 points for clear English, teamwork and creativity. This is not an exam.</div>
+  </div>
+  <div class="actions"><button class="btn" onclick="startFinalTimer()">Start 45-second timer</button><button class="btn good" onclick="finishGame()">Finish mission & show results</button></div>
+</section>
+
+<section id="results" class="screen">
+  <div class="eyebrow">Mission complete</div>
+  <h2>🏔️ Rescue report</h2>
+  <p class="final" id="resultText"></p>
+  <div class="cardgrid" id="resultCards"></div>
+  <div class="callout"><b>Teacher:</b> Use the final minute for a quick class reflection: “What was easy?”, “What was funny?”, “What words can we use again next class?”</div>
+  <div class="actions"><button class="btn" onclick="resetGame()">Play again</button><button class="btn secondary" onclick="go('home')">Back to briefing</button></div>
+</section>
+</main>
+</div>
+
+<script>
+const teams=[
+ {name:"Team North",score:0,color:""},
+ {name:"Team Camp",score:0,color:""},
+ {name:"Team Trail",score:0,color:""}
+];
+let activeTeam=0, qIndex=0, bagIndex=0, stormIndex=0, timer=null;
+
+const qData=[
+ ["A student says: “I can't see ___ in the dark.”",["anything","someone","somewhere","everyone"],0],
+ ["The rescue team needs ___ warm to wait for help.",["something","somewhere","someone","anywhere"],0],
+ ["“Did ___ call for help?”",["anyone","nothing","nowhere","everything"],0],
+ ["We need to go ___ safe.",["somewhere","everywhere","anyone","nothing"],0],
+ ["___ was hurt, but the others were OK.",["Someone","Anything","Anywhere","Nothing"],0],
+ ["The hikers looked ___ for the missing bag.",["everywhere","everyone","someone","nothing"],0],
+ ["“Is there ___ we can sit?”",["somewhere","someone","everything","no one"],0],
+ ["There was ___ in the first-aid kit. It was empty.",["nothing","someone","somewhere","everyone"],0]
+];
+
+const bagWords=[
+ ["something","Make a sentence about something you can put in a rescue bag."],
+ ["someone","Make a sentence about someone who can help."],
+ ["somewhere","Make a sentence about somewhere you can go."],
+ ["anyone","Ask a question with anyone."],
+ ["anything","Make a sentence about something you can't see."],
+ ["anywhere","Make a question with anywhere."],
+ ["everything","Say a sentence about everything in a bag."],
+ ["nowhere","Say a sentence with nowhere."]
+];
+
+const storms=[
+ ["Radio message: ___ / see / can / anyone / you / ?",["Can","you","see","anyone","?"],"Can you see anyone?"],
+ ["Radio message: ___ / is / somewhere / warm / there / ?",["Is","there","somewhere","warm","?"],"Is there somewhere warm?"],
+ ["Radio message: ___ / anything / need / we / ?",["Do","we","need","anything","?"],"Do we need anything?"],
+ ["Radio message: ___ / everyone / keep / safe / must / ?",["Everyone","must","keep","safe","."],"Everyone must keep safe."]
+];
+
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0)}
+function setTeam(i){activeTeam=i;document.querySelectorAll('.team').forEach((x,j)=>x.classList.toggle('active',i===j));updateTurn()}
+function updateTurn(){
+ ["turn1","turn2","turn3"].forEach(id=>{let el=document.getElementById(id);if(el)el.textContent=id==="turn3"?"Whole class challenge":teams[activeTeam].name+"'s turn"});
+}
+function addPoints(i,n){teams[i].score+=n;renderScores()}
+function renderScores(){teams.forEach((t,i)=>{document.getElementById("score"+i).textContent=t.score+" pts";document.getElementById("bar"+i).style.width=Math.min(100,t.score/1.5)+"%";document.getElementById("badge"+i).textContent=t.score>=50?"READY":"PLAYING"})}
+function startMission(n){go(n===1?"mission1":n===2?"mission2":n===3?"mission3":"mission4");if(n===1){qIndex=0;renderQ1()}if(n===2){newBagPrompt()}if(n===3){newStorm()}}
+function renderQ1(){
+ let q=qData[qIndex%qData.length];document.getElementById("q1").textContent=q[0];let box=document.getElementById("choices1");box.innerHTML="";
+ q[1].forEach((c,i)=>{let b=document.createElement("button");b.className="choice";b.textContent=c;b.onclick=()=>answerQ1(i,q[2],b);box.appendChild(b)});
+ document.getElementById("fb1").textContent="";updateTurn();
+}
+function answerQ1(i,correct,btn){
+ document.querySelectorAll("#choices1 .choice").forEach(b=>b.disabled=true);
+ if(i===correct){btn.classList.add("correct");document.getElementById("fb1").textContent="✅ Correct! Say the full sentence together. +10";addPoints(activeTeam,10)}
+ else{btn.classList.add("wrong");document.getElementById("fb1").textContent="Not this one. Try saying the sentence with another option. No points this time."}
+}
+function nextQ1(){qIndex++;activeTeam=(activeTeam+1)%3;renderQ1()}
+function newBagPrompt(){
+ let d=bagWords[bagIndex%bagWords.length];document.getElementById("bagWord").textContent=d[0];document.getElementById("bagPrompt").textContent=d[1];document.getElementById("fb2").textContent="";bagIndex++;
+ activeTeam=(activeTeam+1)%3;updateTurn();
+}
+function scoreBag(){addPoints(activeTeam,10);document.getElementById("fb2").textContent="🎒 Nice rescue sentence! +10. Now another team goes.";activeTeam=(activeTeam+1)%3;updateTurn()}
+function newStorm(){
+ let d=storms[stormIndex%storms.length];document.getElementById("stormPrompt").textContent=d[0];let box=document.getElementById("stormChoices");box.innerHTML="";
+ let shuffled=[...d[1]].sort(()=>Math.random()-.5);shuffled.forEach(word=>{let b=document.createElement("button");b.className="choice";b.textContent=word;b.onclick=()=>{document.getElementById("fb3").textContent="💬 Put the words in order aloud: "+d[2];};box.appendChild(b)});
+ document.getElementById("fb3").textContent="Choose words, then physically arrange students/words to make the message. Teacher confirms.";
+ stormIndex++;
+}
+function stormBonus(){teams.forEach((_,i)=>addPoints(i,15));document.getElementById("fb3").textContent="🤝 Whole-class bonus! Every team gets +15. Great cooperation."}
+function startTimer(elId,seconds,onDone){
+ clearInterval(timer);let t=seconds,el=document.getElementById(elId);el.textContent="⏱ "+t;
+ timer=setInterval(()=>{t--;el.textContent="⏱ "+t;if(t<=0){clearInterval(timer);onDone()}},1000)
+}
+function startFinalTimer(){startTimer("timer4",45,()=>document.getElementById("finalFb").textContent="⏰ Time! Perform your rescue message now.")}
+function finishGame(){
+ clearInterval(timer);go("results");let sorted=[...teams].sort((a,b)=>b.score-a.score);
+ document.getElementById("resultText").textContent="The rescue is complete. Every team helped build the mission!";
+ let cards=document.getElementById("resultCards");cards.innerHTML="";
+ teams.forEach(t=>{let d=document.createElement("div");d.className="info";d.innerHTML="<b>🏔️ "+t.name+"</b><div class='score'>"+t.score+" pts</div><div class='footer-note'>Use the English again in a real-life mini story.</div>";cards.appendChild(d)});
+}
+function resetGame(){teams.forEach(t=>t.score=0);activeTeam=0;qIndex=0;bagIndex=0;stormIndex=0;renderScores();go("home")}
+function showRules(){go("rules")}
+renderScores();updateTurn();
+</script>
+</body>
+</html>
